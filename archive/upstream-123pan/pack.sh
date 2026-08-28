@@ -1,0 +1,1 @@
+pyinstaller -F pan123_cli.py --icon favicon.ico --clean --noconfirm
