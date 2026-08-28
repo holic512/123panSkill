@@ -1,6 +1,9 @@
 # Runtime secrets written by the archived client
 **/123pan_config.json
 
+# Local, de-identified activity records written by scripts/record_activity.py
+.123pan-skill/
+
 # Transfer and build output
 **/download/
 **/*.123pan

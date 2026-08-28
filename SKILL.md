@@ -7,10 +7,10 @@ description: "Use and maintain the archived Bao-qing/123pan Python client for 12
 @file SKILL.md
 @project 123panSkill
 @module 123pan Codex skill entrypoint
-@description Provides safe, source-grounded guidance for using and maintaining the archived Bao-qing/123pan client.
-@logic Classifies requested 123 网盘 work, routes to the relevant local reference, preserves the immutable upstream baseline, and requires explicit authorization before account-changing operations.
-@dependencies Archived upstream Python snapshot; requests~=2.31.0 for executing the archived client.
-@index_tags 123pan, cloud-storage, upstream-archive, python-client
+@description Provides safe, source-grounded guidance and private activity retention for using and maintaining the archived Bao-qing/123pan client.
+@logic Classifies requested 123 网盘 work, routes to relevant references, preserves the immutable upstream baseline, records de-identified operation outcomes locally, and requires explicit authorization before account-changing operations.
+@dependencies Archived upstream Python snapshot; requests~=2.31.0 for executing the archived client; Python standard library for activity logging.
+@index_tags 123pan, cloud-storage, upstream-archive, python-client, activity-log
 @author holic512
 -->
 
@@ -38,6 +38,10 @@ update is required.
   `archive/UPSTREAM.md`. Preserve the baseline and license, record an
   identifiable upstream revision for every new snapshot, and compare changes
   before adopting them.
+- For an account-facing operation, an upstream review, an archive refresh, or
+  skill maintenance, read [references/activity-log.md](references/activity-log.md).
+  Use `scripts/record_activity.py` to retain a local, de-identified outcome
+  record after the operation completes, fails, or is skipped.
 
 ## Operating boundaries
 
@@ -57,11 +61,20 @@ update is required.
    behavior changes should be exposed through this skill or another project.
 5. Report unverified network behavior as unverified. No live account, endpoint,
    or transfer test is implied by the archived source code alone.
+6. Keep activity records local by default. The recorder writes JSONL to
+   `.123pan-skill/activity.jsonl` relative to the active workspace; this path is
+   ignored by Git. Log only the controlled fields supported by the recorder—do
+   not place raw prompts, paths, filenames, account identifiers, passwords,
+   authorization values, cookies, share links, or response bodies in a record.
+7. Record one final outcome for a scoped operation. Use `outcome=skipped` or
+   `outcome=failed` when no account action was performed; do not create a fake
+   success entry. A record is an audit aid, not approval to retry a mutation.
 
 ## Expected result shape
 
 When proposing or performing work with this client, state: the source snapshot
 used, whether the operation is read-only or mutating, how secrets are kept out
-of the workspace, the exact local changes made, and the validation actually
-run. Preserve the upstream attribution and its archived license in every
-redistribution or derivative that includes upstream code.
+of the workspace, the exact local changes made, the validation actually run,
+and the local activity-record outcome. Preserve the upstream attribution and
+its archived license in every redistribution or derivative that includes
+upstream code.

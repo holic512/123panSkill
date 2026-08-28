@@ -28,8 +28,11 @@ recorded in [`archive/UPSTREAM.md`](archive/UPSTREAM.md).
 .
 ├── SKILL.md                         # Codex skill entrypoint
 ├── README.md                        # This package guide and attribution
+├── scripts/
+│   └── record_activity.py            # Private, de-identified JSONL recorder
 ├── references/
 │   ├── client-behavior.md           # Code-verified operation and risk notes
+│   ├── activity-log.md               # Activity log schema and retention policy
 │   └── upstream-maintenance.md      # Safe upstream refresh workflow
 └── archive/
     ├── UPSTREAM.md                  # Snapshot manifest and integrity record
@@ -80,6 +83,40 @@ Listing or explaining code does not authorize uploads, deletions, shares,
 restores, overwrites, or credential persistence. Those operations need an
 explicitly scoped request.
 
+## Private activity retention
+
+The skill includes [`scripts/record_activity.py`](scripts/record_activity.py)
+for append-only, local JSONL activity records. By default it writes to
+`.123pan-skill/activity.jsonl` under the active workspace. That directory is
+ignored by Git, so operation records do not enter commits or the public GitHub
+repository unless you deliberately copy them elsewhere.
+
+The recorder accepts only controlled identifiers and emits no free-text field.
+It retains an action category, read/write scope, authorization state, outcome,
+source-snapshot label, reason code, validation labels, timestamp, and generated
+run ID. This prevents normal use from recording account identifiers, passwords,
+Bearer tokens, cookies, URLs, share links, filenames, paths, or response data.
+
+For a completed, failed, or skipped workflow, run a record command from the
+working directory that owns the local log. Example:
+
+```bash
+python3 /path/to/123panSkill/scripts/record_activity.py record \
+  --action upstream-review \
+  --outcome succeeded \
+  --side-effect none \
+  --authorization not-applicable \
+  --source-snapshot archive-baseline \
+  --reason-code source-inspected \
+  --validation python-syntax-check \
+  --validation archive-hash-check
+```
+
+Use `list` to inspect validated records, and `validate` before preserving or
+sharing a local log. The field schema, approved values, file permissions, and
+retention/delete procedure are in
+[`references/activity-log.md`](references/activity-log.md).
+
 ## Updating from upstream
 
 The baseline at `archive/upstream-123pan/` is deliberately immutable. Do not
@@ -94,7 +131,7 @@ repeatable process and required evidence are in
 
 - The archived configuration writer stores the username, password, and Bearer
   authorization in plain JSON. Keep any runtime configuration outside the
-  repository and out of logs.
+  repository and out of activity logs.
 - The download-URL resolver disables TLS certificate verification for one
   redirect request in this snapshot. Treat that behavior as a security concern
   to assess during any implementation or upstream update; it has not been
